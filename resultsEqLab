@@ -1,0 +1,462 @@
+Script started on Sun 02 Oct 2016 12:24:12 AM EDT
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ pwd
+/home/students/raheemakadwa/DataStructures
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ cat hugeint.h
+/*Raheema Kadwa
+ * Data Structures
+ * Review Lab 1 
+ *
+ *HugeInteher.h
+ *Class that represents a positive integer up to 40 digits long.
+ *Includes overloaded operators. 
+ *Add and multiply hugeintegers
+*
+*/
+
+#include <iostream>
+
+using std::cin;
+using std::cout;
+using std::string;
+using std::endl;
+using std::ostream;
+using std::istream;
+using std::max;
+class HugeInteger{
+
+	friend ostream& operator<< (ostream&, const HugeInteger &);
+	friend istream&operator>> (istream&, HugeInteger &);
+
+	private: 
+		int sigDigits; 
+		static const int MAXDIGITS=40;
+		int digits[MAXDIGITS];
+
+                //helper functions	
+		bool isZero()const;	
+		int getDigits()const;
+		int getDigit(int)const;
+		void addDigit(int, int);
+
+	public:
+		
+		void clear();
+
+		HugeInteger();
+		string asString();	
+	
+		HugeInteger operator+ (const HugeInteger &)const;
+		HugeInteger operator* (const HugeInteger &)const;
+
+		bool operator== (HugeInteger &)const;
+		bool operator!= (HugeInteger &)const;
+		bool operator>= (HugeInteger &)const;
+		bool operator<= (HugeInteger &)const;
+
+};
+
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ cat hugeint.cpp
+#include "hugeint.h"
+#include <string>
+#include <sstream>
+
+using std::string;
+using std::stringstream;
+
+///////////////helper functions////////////
+bool HugeInteger::isZero()const{
+	return (sigDigits==0);
+}
+
+int HugeInteger::getDigits()const{
+	return sigDigits;
+}
+
+void HugeInteger::addDigit(int pos, int val){
+	digits[pos]=val;
+	sigDigits++;
+}
+		
+void HugeInteger::clear(){
+	HugeInteger product, temp;
+	for (int x=0; x< MAXDIGITS; x++){
+		digits[x]=0;
+	}
+	sigDigits=0;
+}
+
+int HugeInteger::getDigit(int x)const{
+	return digits[x];
+}
+
+///////////////////////////////////////////
+
+
+//output function 
+ostream& operator<< (ostream& output, const HugeInteger  & op1){
+	for (int x=op1.MAXDIGITS - op1.sigDigits; x<op1.MAXDIGITS; x++){
+		output<<op1.digits[x];
+	}
+	return output;
+}
+
+
+//input function 
+istream& operator>> (istream& input, HugeInteger & op1){
+	op1.clear();
+
+        int toInt(char);
+
+        string s;
+	input>>s;
+	int j=op1.MAXDIGITS-1;
+	char tmp;
+	int tmp1;
+	
+	for (int x=s.length()-1; x>=0 && j>=0; x--,j--){
+		tmp = s[x];
+		tmp1 =toInt(tmp);
+     		op1.digits[j]=tmp1;
+		op1.sigDigits++;
+	}
+	return input;
+}
+
+///////////////////////////////////////////
+
+HugeInteger::HugeInteger(){
+	sigDigits =0;
+	for (int x=0; x<MAXDIGITS; x++){
+		digits[x]=0;
+	}
+}
+
+
+string HugeInteger::asString(){
+	string res = "";
+	for (int x = MAXDIGITS-sigDigits; x<MAXDIGITS; x++){
+		res += std::to_string(digits[x]);
+	}
+	return res;
+}
+
+HugeInteger HugeInteger::operator+ (const HugeInteger & op2)const{
+	int toInt(char);
+
+	HugeInteger sum;
+	int  tmp=0, carryOver=0;
+	string str = "";
+	//decide how many times to go based on larger number 
+	//(and then go once more in case there is a carry over
+	int numIterations = MAXDIGITS - max(sigDigits, op2.getDigits()) - 1;
+
+	//go through both arrays of digits 
+	for (int x =MAXDIGITS-1; x>=numIterations && x>=0; x--){	
+		tmp = digits[x] + op2.getDigit(x) + carryOver;
+
+ 		//reset carryover in case it isnt updated 
+
+		carryOver = tmp/10;
+			//cout <<"tmp: " <<tmp <<" str: ." <<str <<  ". str[0]: " << str[0] << " carryover: " <<carryOver <<endl;
+			
+			//dont carry over if it the last iteraton and it is a 0
+			if (!(x==numIterations && tmp==0))
+				sum.addDigit(x, tmp%10);
+		
+		str="";
+	}
+	//cout <<"sum: " <<sum<<endl;
+	return sum;
+}
+
+HugeInteger HugeInteger::operator* (const HugeInteger & op2)const{
+	HugeInteger product, temp;
+	int tmp=0, carryover=0;
+	int toInt(char);
+
+	string str;
+	if ((*this).isZero() || op2.isZero()){
+		return product;
+	}
+
+	int numIterations = MAXDIGITS-sigDigits;
+
+	for (int x=MAXDIGITS -1 ; x>=MAXDIGITS-op2.getDigits(); x--){
+		for (int y=MAXDIGITS-1;y>=MAXDIGITS-sigDigits; y--){
+			tmp = digits[y]* op2.getDigit(x) + carryover;
+			carryover=tmp/10;
+			//cout << "carryover: " << carryover << "tmp: " <<tmp <<endl;
+	
+				//dont carry over if it the last iteraton and it is a 0
+				//cout << "y: " <<y << "tmp: " <<tmp << " numiterations: " << numIterations <<endl;
+				if (!( y==numIterations && tmp==0))
+					temp.addDigit(x-(MAXDIGITS-1)+y, tmp%10);
+				
+		}
+		//cout <<"temp: " <<temp <<endl;
+		product = product + temp;
+		temp.clear();
+	}
+	return product;
+}
+
+bool HugeInteger::operator==(HugeInteger& op2)const{
+	bool equal = true;
+	
+	//check if they are the same length
+	if (op2.getDigits()!=sigDigits)
+		equal = false;
+	//else, go through digits and check to see they are the same
+	else{
+		for (int x=MAXDIGITS-sigDigits; x<MAXDIGITS; x++){
+			if (digits[x]!=op2.getDigit(x)){	
+				equal = false;
+			}
+		}
+	}
+	return equal;
+}	
+
+bool HugeInteger::operator!=( HugeInteger & op2)const{
+	return !(*this==op2);
+}
+
+bool HugeInteger::operator>=(HugeInteger &op2)const{
+	bool greater= false;
+
+	//check to see if this has more digits than op2
+	//by default is larger, no check required
+	if (sigDigits > op2.getDigits()){
+		greater = true;
+	}
+
+	else {
+		for (int x = MAXDIGITS-sigDigits; x< MAXDIGITS; x++){
+			if (digits[x]>=op2.getDigit(x)){
+				greater = true;
+			}
+		}
+	}
+	return greater;
+}
+
+bool HugeInteger::operator<=(HugeInteger &op2)const{
+        bool lesser=false;
+	
+	//check to see if it has less digits than op2
+	//by default is less, no check required 
+	
+	if (sigDigits < op2.getDigits()){
+		lesser = false;
+	}
+
+	else {
+		for (int x = MAXDIGITS-sigDigits; x< MAXDIGITS; x++){
+			if (digits[x]<=op2.getDigit(x)){
+				lesser=false;
+			}
+		}
+	}
+
+	return lesser;        
+}
+
+
+
+int toInt (char c){
+	int tmp1;
+	switch (c){
+	case '1':
+		tmp1 = 1;
+		break;
+	case '2':
+ 		tmp1 = 2;
+		break;
+	case '3':
+                tmp1 = 3;
+		break;
+	case '4':	
+		tmp1=4;
+		break;
+	case '5':
+                tmp1 = 5;
+		break;
+        case '6':
+                tmp1 = 6;
+		break;
+        case '7':
+                tmp1 = 7;
+                break; 
+	case '8':
+		tmp1=8;
+		break;
+	case '9':
+		tmp1 = 9;
+		break;                       
+ 	case '0':
+	default:
+ 		tmp1 = 0;
+                break; 
+       }
+	return tmp1;
+}
+
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ cat equation.h
+#include "hugeint.cpp"
+
+
+class Equation{
+
+	friend ostream& operator<< (ostream&, const Equation &);
+	friend istream& operator>>(istream&, Equation &);
+
+	public:
+		static void reports();
+		void applyOperation();
+	
+	private:
+   		static string results [][2]; //[row][columns]
+		HugeInteger op1, op2, result;
+		char op;
+		static int pos;
+		
+		void addToResults();
+};
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ cat equation.cpp
+#include "equation.h"
+#include <string>
+
+ostream& operator<< (ostream& output, const Equation & equation){
+	output << equation.op1 << " " << equation.op << " " << equation.op2 << "=" << equation.result << endl;
+	return output;
+}
+
+istream& operator>> (istream& input, Equation & equation){
+	cout << "Enter equation in the form xx +/* xx: ";
+	equation.op = ' ' ;
+	equation.op1.clear();
+	equation.op2.clear();
+	equation.result.clear();
+
+	while (equation.op != '+' &&  equation.op != '*')
+		input >> equation.op1 >> equation.op >> equation.op2;	
+ 	
+	return input;
+}
+
+int Equation::pos = 0;
+string Equation::results[100][2];
+
+void Equation::reports(){
+	string addition = "", multiplication="";
+	int add = 1, mul = 1;
+        cout << "All Equations Entered: " <<endl;
+	for (int x = 0 ; x< pos; x++){
+		if (results[x][1]=="+"){
+			addition+= std::to_string(add) + ". " + results[x][0]+"\n";
+			add++;
+		}
+		else{ 	
+			multiplication += std::to_string(mul)+ ". " + results[x][0]+"\n";
+			mul++;
+		}
+		cout << x+1 <<". " << results[x][0] <<endl;
+	}
+
+	cout <<  endl << "ALL ADDITION EQUATIONS ENTERED\n" << addition <<endl;
+	cout << "ALL MULTIPLICATON EQUATIONS ENTERED\n" << multiplication <<endl;
+}
+
+void Equation::applyOperation(){
+	result.clear();
+	switch (op){
+		case '+':
+			result = op1 + op2;
+			break;
+		case '*':
+			result = op1 * op2;
+			break;
+	}
+       
+	// cout << "results: " << results <<endl;
+	
+	addToResults();
+
+}
+
+////private functions//////////////////////////////////////
+
+void Equation::addToResults(){
+
+	string opS =  &op;
+	results[pos][0]=op1.asString() + " " + opS + " " + op2.asString() + " = " + result.asString();
+	switch (op){
+		case '+':
+			results[pos][1]="+";
+			break;
+		 case '*':
+                        results[pos][1]="*";
+                        break;
+                
+	}
+
+	pos++;	
+	//cout <<endl << "POS: " << pos << endl;
+}
+
+main(){
+	
+	bool cont = true;
+	int times = 0;
+	char ans = ' ';
+	Equation eq;
+	
+	while (cont){
+		cin >> eq;
+		eq.applyOperation();
+
+		//cout << "answ!: " <<ans <<endl;	
+		
+		while (ans!= 'n' &&  ans!='N' &&  ans != 'Y' &&  ans!='y'){
+			cout <<"Would you like to continue?(y/n): " ;
+			cin >> ans;
+		}
+	
+		if (ans=='n' || ans == 'N'|| times == 99)
+			cont = false;
+		
+		ans = ' ';
+		times++;
+	}
+
+	cout <<"Thank you!\nQuitting......\n\n";
+	eq.reports();
+}
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ g++ equation.cpp -o main
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ ./main
+Enter equation in the form xx +/* xx: 12 + 900
+Would you like to continue?(y/n): y
+Enter equation in the form xx +/* xx: 23 + 765 
+Would you like to continue?(y/n): 7+    * 10
+Would you like to continue?(y/n): Would you like to continue?(y/n): Would you like to continue?(y/n): Would you like to continue?(y/n): y
+Enter equation in the form xx +/* xx: 7 * 10
+Would you like to continue?(y/n): n
+Thank you!
+Quitting......
+
+All Equations Entered: 
+1. 12 + 900 = 912
+2. 23 + 76 = 99
+3. 7 * 10 = 70
+
+ALL ADDITION EQUATIONS ENTERED
+1. 12 + 900 = 912
+2. 23 + 76 = 99
+
+ALL MULTIPLICATON EQUATIONS ENTERED
+1. 7 * 10 = 70
+
+]0;raheemakadwa@storm:~/DataStructures[raheemakadwa@storm DataStructures]$ exit
+exit
+
+Script done on Sun 02 Oct 2016 12:25:43 AM EDT
